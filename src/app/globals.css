@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --void: #050505;
+  --accent: #B6FF00;
+  --cursed: #3C1A47;
+
+  /* Cyber-Neon palette */
+  --neon-cyan: #B6FF00;
+  --neon-magenta: #ff003c;
+  --neon-yellow: #fce205;
+  /* Outer glow radius — driven live by scroll velocity in useNeonScroll */
+  --neon-spread: 20px;
+}
+
+/* ---------- Lenis ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--void);
+  color: #fff;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--void);
+}
+
+/* Custom reticle replaces the native cursor on precise pointers only */
+@media (pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+}
+
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--void);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(182, 255, 0, 0.35);
+}
+
+/* ---------- Cyber-Neon utilities ---------- */
+.neon-glow {
+  box-shadow:
+    0 0 5px var(--neon-cyan),
+    0 0 var(--neon-spread, 20px) var(--neon-cyan);
+}
+
+.neon-text {
+  text-shadow: 0 0 8px var(--neon-cyan);
+}
+
+a,
+button {
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+a:hover,
+button:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 5px var(--neon-cyan),
+    0 0 var(--neon-spread, 20px) var(--neon-cyan);
+}
+
+/* ---------- Utilities ---------- */
+.text-stroke {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.14);
+  color: transparent;
+}
+.text-stroke-accent {
+  -webkit-text-stroke: 1px rgba(182, 255, 0, 0.3);
+  color: transparent;
+}
+
+/* Promote section containers to their own GPU layer so the concurrent
+   GSAP filter/transform tweens (hue-rotate, parallax, pin) compose without
+   subpixel seams between adjacent sections. */
+main section {
+  backface-visibility: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+  outline: 1px solid transparent;
+  background-clip: padding-box;
+  border: none !important;
+}
+
+/* Same GPU-layer promotion on the actual elements GSAP transforms every
+   scroll frame (parallax kanji, the pinned horizontal track, the project
+   card wipe reveal) — these, not the static section wrapper, are where a
+   fractional translate can leave a hairline seam. */
+.kanji-background,
+.pin-track,
+.wipe-cover {
+  backface-visibility: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ---------- Neon kanji (background typography) ---------- */
+/* Gas-tube glow: white-hot core, cyan halo. Sits behind section content;
+   sections are stacking contexts (filter from useNeonScroll), so z-index -1
+   stays local and the GSAP parallax is untouched.
+   The default opacity keeps the glyph at watermark brightness — section
+   titles render directly on top of these, so at full strength the two
+   text layers visually merge. Dimming the element (not the color) scales
+   the core and halo together, preserving the neon look. */
+.kanji-background {
+  --kanji-opacity: 0.35; /* per-instance override, multiplied into the flicker */
+  z-index: -1;
+  opacity: var(--kanji-opacity); /* holds when the flicker animation isn't running */
+  color: #f2ffe5;
+  mix-blend-mode: screen;
+  text-shadow:
+    0 0 3px rgba(255, 255, 255, 0.5),
+    0 0 10px rgba(182, 255, 0, 0.45),
+    0 0 24px rgba(182, 255, 0, 0.25);
+  animation: neon-flicker 2.4s steps(1, jump-none) infinite;
+}
+
+/* Light "spreads" across the background while the section is hovered */
+section:hover .kanji-background {
+  text-shadow:
+    0 0 4px rgba(255, 255, 255, 0.6),
+    0 0 14px rgba(182, 255, 0, 0.55),
+    0 0 36px rgba(182, 255, 0, 0.35);
+}
+
+/* Unstable-tube flicker, 0.8–1.0, irregular timing */
+@keyframes neon-flicker {
+  0%, 100% { opacity: calc(var(--kanji-opacity) * 1); }
+  8%       { opacity: calc(var(--kanji-opacity) * 0.84); }
+  10%      { opacity: calc(var(--kanji-opacity) * 0.98); }
+  23%      { opacity: calc(var(--kanji-opacity) * 0.9); }
+  27%      { opacity: calc(var(--kanji-opacity) * 1); }
+  46%      { opacity: calc(var(--kanji-opacity) * 0.86); }
+  49%      { opacity: calc(var(--kanji-opacity) * 0.97); }
+  62%      { opacity: calc(var(--kanji-opacity) * 0.8); }
+  65%      { opacity: calc(var(--kanji-opacity) * 1); }
+  81%      { opacity: calc(var(--kanji-opacity) * 0.92); }
+  84%      { opacity: calc(var(--kanji-opacity) * 0.99); }
+}
+
+/* Tighter halo on small screens so the glow doesn't wash out content */
+@media (max-width: 768px) {
+  .kanji-background,
+  section:hover .kanji-background {
+    text-shadow:
+      0 0 2px rgba(255, 255, 255, 0.4),
+      0 0 8px rgba(182, 255, 0, 0.3);
+  }
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgba(255, 255, 255, 0.015) 2px 4px
+  );
+}
+
+/* ---------- Ambient flicker (domain instability) ---------- */
+@keyframes flicker {
+  0%, 92%, 100% { opacity: 0; }
+  93% { opacity: 0.05; }
+  94% { opacity: 0; }
+  96% { opacity: 0.08; }
+  98% { opacity: 0.02; }
+}
+.animate-flicker {
+  animation: flicker 5s infinite;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.animate-blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+/* ---------- Glitch slice (project titles on card hover) ---------- */
+.glitch {
+  position: relative;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.glitch::before {
+  color: var(--accent);
+}
+.glitch::after {
+  color: var(--cursed);
+}
+.group:hover .glitch::before {
+  opacity: 0.9;
+  animation: glitch-a 0.45s steps(2, jump-none) infinite;
+}
+.group:hover .glitch::after {
+  opacity: 0.9;
+  animation: glitch-b 0.45s steps(2, jump-none) infinite reverse;
+}
+@keyframes glitch-a {
+  0%   { clip-path: inset(10% 0 62% 0); transform: translate(-3px, -2px); }
+  25%  { clip-path: inset(58% 0 12% 0); transform: translate(3px, 1px); }
+  50%  { clip-path: inset(30% 0 48% 0); transform: translate(-2px, 2px); }
+  75%  { clip-path: inset(80% 0 4% 0);  transform: translate(2px, -1px); }
+  100% { clip-path: inset(44% 0 30% 0); transform: translate(-1px, 1px); }
+}
+@keyframes glitch-b {
+  0%   { clip-path: inset(62% 0 10% 0); transform: translate(3px, 2px); }
+  25%  { clip-path: inset(12% 0 58% 0); transform: translate(-3px, -1px); }
+  50%  { clip-path: inset(48% 0 30% 0); transform: translate(2px, -2px); }
+  75%  { clip-path: inset(4% 0 80% 0);  transform: translate(-2px, 1px); }
+  100% { clip-path: inset(30% 0 44% 0); transform: translate(1px, -1px); }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
