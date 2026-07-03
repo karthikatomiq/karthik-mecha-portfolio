@@ -83,7 +83,7 @@ export default function Contact() {
         04 // SECURE_COMMS — 通信回線
       </p>
 
-      <div className="relative z-10 font-display text-[8vw] font-bold leading-[1.05] md:text-[7vw]">
+      <div className="relative z-10 font-display text-[8vw] font-bold leading-[1.05] md:text-[7vw] neon-outline-cyan">
         <MaskReveal><span>LET&apos;S BUILD</span></MaskReveal>
         <MaskReveal delay={0.08}><span>SOMETHING</span></MaskReveal>
         <MaskReveal delay={0.16}>

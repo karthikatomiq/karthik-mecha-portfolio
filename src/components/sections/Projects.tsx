@@ -40,7 +40,7 @@ export default function Projects() {
         <div>
           <p className="mb-4 font-mono text-xs tracking-[0.4em] text-accent">03 // ARSENAL</p>
           <MaskReveal>
-            <h2 className="font-display text-5xl font-bold md:text-7xl">DEPLOYED UNITS</h2>
+            <h2 className="font-display text-5xl font-bold md:text-7xl neon-outline-cyan">DEPLOYED UNITS</h2>
           </MaskReveal>
         </div>
         <span className="hidden font-mono text-[10px] tracking-[0.3em] text-white/40 md:block">

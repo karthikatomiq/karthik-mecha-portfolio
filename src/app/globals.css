@@ -93,6 +93,18 @@ button:hover {
   color: transparent;
 }
 
+/* Massive white English display headers only — hard cyan stroke around a
+   solid white core, with a soft cyan bleed outside the stroke. Not for
+   background kanji, terminal mono text, or paragraph copy. */
+.neon-outline-cyan {
+  color: #ffffff;
+  -webkit-text-stroke: 1.5px #00e5ff;
+  text-shadow:
+    0 0 15px rgba(0, 229, 255, 0.6),
+    0 0 30px rgba(0, 229, 255, 0.3);
+  -webkit-font-smoothing: antialiased;
+}
+
 /* Promote section containers to their own GPU layer so the concurrent
    GSAP filter/transform tweens (hue-rotate, parallax, pin) compose without
    subpixel seams between adjacent sections. */
