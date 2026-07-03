@@ -14,7 +14,7 @@ export const siteConfig = {
 
   socials: [
     { label: "INSTAGRAM", href: "https://www.instagram.com/karthik_18_88?igsh=ZmIya3N2aGlxeWMx" },
-    { label: "LINKEDIN", href: "#" },
+    { label: "LINKEDIN", href: "https://www.linkedin.com/in/karthik-p-0181b0418" },
   ],
 
   // Edit these freely — sample units. Kanji renders as background art on each card.

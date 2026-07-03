@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { siteConfig } from "@/data/config";
+import { isGmailAddress } from "@/lib/validation";
 
 /* Sender must stay on resend.dev until a custom domain is verified with
    Resend; replies go to the submitter via replyTo. */
 const FROM = "K-OS Comms <onboarding@resend.dev>";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
   let body: { name?: unknown; email?: unknown; payload?: unknown };
@@ -26,8 +25,8 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (!EMAIL_RE.test(email)) {
-    return NextResponse.json({ ok: false, error: "email is not a valid address." }, { status: 400 });
+  if (!isGmailAddress(email)) {
+    return NextResponse.json({ ok: false, error: "email must be a valid @gmail.com address." }, { status: 400 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;

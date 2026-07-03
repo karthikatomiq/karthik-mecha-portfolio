@@ -1,17 +1,26 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type FocusEvent } from "react";
 import Corners from "@/components/Corners";
 import Magnetic from "@/components/Magnetic";
 import MaskReveal from "@/components/MaskReveal";
 import ParallaxKanji from "@/components/ParallaxKanji";
 import { siteConfig } from "@/data/config";
+import { isGmailAddress } from "@/lib/validation";
 
 type SendState = "idle" | "sending" | "sent" | "error";
+
+function validateEmail(value: string): string | null {
+  const v = value.trim();
+  if (!v) return "RETURN_FREQUENCY REQUIRED";
+  if (!isGmailAddress(v)) return "GMAIL_ADDRESS_REQUIRED";
+  return null;
+}
 
 export default function Contact() {
   const [copied, setCopied] = useState(false);
   const [sendState, setSendState] = useState<SendState>("idle");
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const copyEmail = async () => {
     try {
@@ -23,10 +32,24 @@ export default function Contact() {
     }
   };
 
+  const onEmailBlur = (e: FocusEvent<HTMLInputElement>) => {
+    setEmailError(validateEmail(e.target.value));
+  };
+
+  const onEmailChange = () => {
+    if (emailError) setEmailError(null);
+  };
+
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (sendState === "sending") return;
     const fd = new FormData(e.currentTarget);
+    const emailValue = String(fd.get("email") ?? "");
+    const emailValidationError = validateEmail(emailValue);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      return;
+    }
     setSendState("sending");
     try {
       const res = await fetch("/api/contact", {
@@ -110,7 +133,7 @@ export default function Contact() {
             <p className="text-white/40">channel closed. connection archived.</p>
           </div>
         ) : (
-        <form onSubmit={onSubmit} className="flex flex-col gap-6 p-6 md:p-8">
+        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6 p-6 md:p-8">
           <p className="font-mono text-xs leading-relaxed text-white/40">
             $ init_handshake --to={siteConfig.name.toLowerCase()} --priority=high
             <br />
@@ -128,7 +151,24 @@ export default function Contact() {
             <label htmlFor="email" className="mb-1 block font-mono text-[10px] tracking-[0.3em] text-accent/80">
               &gt; RETURN_FREQUENCY *
             </label>
-            <input id="email" name="email" type="email" required autoComplete="email" placeholder="you@domain.dev" className={inputCls} />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="example@gmail.com"
+              aria-invalid={emailError ? true : undefined}
+              aria-describedby={emailError ? "email-error" : undefined}
+              onBlur={onEmailBlur}
+              onChange={onEmailChange}
+              className={inputCls}
+            />
+            {emailError && (
+              <p id="email-error" role="alert" className="mt-2 font-mono text-[10px] tracking-[0.2em] text-[#ff3c8c]">
+                &gt; ERROR: {emailError}
+              </p>
+            )}
           </div>
 
           <div>
