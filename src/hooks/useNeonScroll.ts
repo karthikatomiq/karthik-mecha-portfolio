@@ -43,15 +43,22 @@ export function useNeonScroll(selector = "main section") {
         }
 
         // 1 — Electric Scroll: hue/brightness follow scroll progress.
+        // Quantized: a filter change re-composites the whole section layer, and
+        // at boundaries two sections update at once — only write on real steps.
         const setFilter = gsap.quickSetter(section, "filter") as (v: string) => void;
+        let lastFilter = "";
         ScrollTrigger.create({
           trigger: section,
           start: "top bottom",
           end: "bottom top",
           onUpdate: (self) => {
-            const hue = (self.progress - 0.5) * 30; // −15° → +15° across the viewport
-            const brightness = 1 + Math.sin(self.progress * Math.PI) * 0.12;
-            setFilter(`hue-rotate(${hue.toFixed(1)}deg) brightness(${brightness.toFixed(3)})`);
+            const hue = Math.round((self.progress - 0.5) * 30 * 2) / 2; // −15° → +15°, 0.5° steps
+            const brightness = Math.round((1 + Math.sin(self.progress * Math.PI) * 0.12) * 200) / 200;
+            const value = `hue-rotate(${hue}deg) brightness(${brightness})`;
+            if (value !== lastFilter) {
+              lastFilter = value;
+              setFilter(value);
+            }
           },
         });
 
@@ -104,8 +111,11 @@ export function useNeonScroll(selector = "main section") {
     });
 
     // 3 — Velocity-reactive glow: |scroll velocity| → box-shadow spread, smoothed.
+    // Writing a root CSS var invalidates style for every var() consumer, so
+    // quantize to 0.5px and skip the write when the value hasn't stepped.
     let spread = 20;
     let lastY = window.scrollY;
+    let lastSpread = "";
     const onTick = () => {
       const lenis = getLenis();
       let velocity: number;
@@ -117,7 +127,11 @@ export function useNeonScroll(selector = "main section") {
       }
       const target = gsap.utils.clamp(20, 60, 20 + velocity * 0.8);
       spread += (target - spread) * 0.1;
-      rootStyle.setProperty("--neon-spread", `${spread.toFixed(1)}px`);
+      const stepped = `${Math.round(spread * 2) / 2}px`;
+      if (stepped !== lastSpread) {
+        lastSpread = stepped;
+        rootStyle.setProperty("--neon-spread", stepped);
+      }
     };
     gsap.ticker.add(onTick);
 

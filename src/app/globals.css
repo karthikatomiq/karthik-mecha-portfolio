@@ -179,6 +179,205 @@ section:hover .kanji-background {
   );
 }
 
+/* ---------- Loading screen (boot sequence) ---------- */
+.ls-scan {
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    rgba(182, 255, 0, 0.035) 2px 4px
+  );
+  animation:
+    ls-scan-drift 5s linear infinite,
+    ls-scan-flicker 2.3s steps(1, jump-none) infinite;
+}
+/* Drift by a whole number of 4px gradient periods so the loop is seamless */
+@keyframes ls-scan-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(16px); }
+}
+@keyframes ls-scan-flicker {
+  0%, 100% { opacity: 1; }
+  13% { opacity: 0.55; }
+  15% { opacity: 0.9; }
+  41% { opacity: 0.7; }
+  44% { opacity: 1; }
+  78% { opacity: 0.5; }
+  80% { opacity: 0.95; }
+}
+
+/* Boot emblem: slow breathing scale + glow pulse while loading runs */
+.ls-symbol-idle {
+  animation: ls-symbol-breathe 3.2s ease-in-out infinite;
+}
+@keyframes ls-symbol-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 14px rgba(182, 255, 0, 0.25));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 26px rgba(182, 255, 0, 0.5));
+  }
+}
+
+/* Neon counter glow with a periodic RGB-split burst */
+.ls-glitch {
+  text-shadow: 0 0 16px rgba(182, 255, 0, 0.45);
+  animation: ls-glitch 3.6s steps(1, jump-none) infinite;
+}
+@keyframes ls-glitch {
+  0%, 100% {
+    transform: translate(0);
+    text-shadow: 0 0 16px rgba(182, 255, 0, 0.45);
+  }
+  78% {
+    transform: translate(2px, -1px);
+    text-shadow: -4px 0 #ff003c, 4px 0 #B6FF00, 0 0 16px rgba(182, 255, 0, 0.45);
+  }
+  80.5% {
+    transform: translate(-2px, 1px);
+    text-shadow: 4px 0 #ff003c, -4px 0 #B6FF00, 0 0 16px rgba(182, 255, 0, 0.45);
+  }
+  83% {
+    transform: translate(0);
+    text-shadow: 0 0 16px rgba(182, 255, 0, 0.45);
+  }
+}
+
+.ls-line { animation: ls-line-in 200ms ease-out; }
+@keyframes ls-line-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Void-colored gaps painted over the fill bar make it read as segments */
+.ls-segments {
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 17px,
+    #050505 17px 21px
+  );
+}
+
+/* ---------- Cursor gun: bullet tracer + impact splash ---------- */
+/* Spawned imperatively by CursorGun on each shot and removed when their
+   WAAPI animations finish. Base opacity 0: only visible mid-animation. */
+/* Laser beam: anchored at the muzzle (origin 0 50%), width set inline to
+   the muzzle->impact distance, rotated along the shot line. Bright core
+   with layered box-shadow glow; a brighter white flare at the muzzle end. */
+.gun-beam {
+  position: absolute;
+  left: 0;
+  top: -1px; /* centers the 2px core on its translate coordinate */
+  height: 2px;
+  border-radius: 1px;
+  transform-origin: 0 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.95),
+    #5ff2d6 12%,
+    rgba(95, 242, 214, 0.9)
+  );
+  box-shadow:
+    0 0 4px rgba(95, 242, 214, 0.95),
+    0 0 12px rgba(95, 242, 214, 0.6),
+    0 0 26px rgba(255, 60, 140, 0.25);
+}
+.gun-splash {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+.gun-splash-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(95, 242, 214, 0.6) 40%,
+    rgba(255, 60, 140, 0.25) 65%,
+    transparent 75%
+  );
+}
+.gun-splash-spark {
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  transform-origin: 0 50%;
+  background: #5ff2d6;
+  box-shadow: 0 0 6px rgba(95, 242, 214, 0.8);
+}
+
+/* ---------- Parallax car: explosion effects ---------- */
+/* Spawned imperatively by ParallaxCar when the car is destroyed; each
+   element removes itself when its animation finishes. */
+.car-explode-flash {
+  position: absolute;
+  left: -80px;
+  top: -80px;
+  width: 160px;
+  height: 160px;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(182, 255, 0, 0.55) 40%,
+    rgba(255, 60, 140, 0.3) 65%,
+    transparent 75%
+  );
+}
+.car-shard {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  border-radius: 1px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ---------- Parallax car neon tires ---------- */
+/* --boost (0..1) is written by ParallaxCar from scroll velocity; the
+   transitions let the flare decay smoothly once scrolling stops. */
+.car-tire {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(182, 255, 0, 0.9) 0%, rgba(182, 255, 0, 0.35) 55%, transparent 75%);
+  box-shadow:
+    0 0 10px 3px rgba(182, 255, 0, 0.8),
+    0 0 28px 9px rgba(182, 255, 0, 0.45);
+  transform: scale(calc(1 + var(--boost, 0) * 0.7));
+  filter: brightness(calc(1 + var(--boost, 0) * 1.3));
+  transition: transform 0.25s ease-out, filter 0.25s ease-out;
+  /* steps(1) holds each keyframe value then jumps — steps(1, jump-none)
+     is invalid CSS and silently kills the whole animation */
+  animation: tire-flicker 0.9s steps(1) infinite;
+}
+/* unstable neon charge: rapid irregular opacity jumps between 0.5 and 1 */
+@keyframes tire-flicker {
+  0%, 100% { opacity: 1; }
+  13% { opacity: 0.55; }
+  22% { opacity: 0.92; }
+  37% { opacity: 0.6; }
+  46% { opacity: 1; }
+  58% { opacity: 0.5; }
+  71% { opacity: 0.88; }
+  83% { opacity: 0.65; }
+}
+
 /* ---------- Ambient flicker (domain instability) ---------- */
 @keyframes flicker {
   0%, 92%, 100% { opacity: 0; }
