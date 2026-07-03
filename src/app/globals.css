@@ -93,15 +93,15 @@ button:hover {
   color: transparent;
 }
 
-/* Massive white English display headers only — hard cyan stroke around a
-   solid white core, with a soft cyan bleed outside the stroke. Not for
+/* Massive white English display headers only — hard purple stroke around a
+   solid white core, with a soft purple bleed outside the stroke. Not for
    background kanji, terminal mono text, or paragraph copy. */
-.neon-outline-cyan {
+.neon-outline-purple {
   color: #ffffff;
-  -webkit-text-stroke: 1.5px #00e5ff;
+  -webkit-text-stroke: 1.5px #7209b7;
   text-shadow:
-    0 0 15px rgba(0, 229, 255, 0.6),
-    0 0 30px rgba(0, 229, 255, 0.3);
+    0 0 15px rgba(114, 9, 183, 0.6),
+    0 0 30px rgba(114, 9, 183, 0.3);
   -webkit-font-smoothing: antialiased;
 }
 

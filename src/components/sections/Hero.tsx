@@ -54,7 +54,7 @@ export default function Hero({ booted }: { booted: boolean }) {
       </motion.div>
 
       {/* staggered name reveal */}
-      <h1 aria-label={siteConfig.displayName} className="relative z-10 flex flex-wrap neon-outline-cyan">
+      <h1 aria-label={siteConfig.displayName} className="relative z-10 flex flex-wrap neon-outline-purple">
         {siteConfig.displayName.split("").map((letter, i) => (
           <span key={i} aria-hidden className="inline-block overflow-hidden">
             <motion.span

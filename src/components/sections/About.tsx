@@ -76,7 +76,7 @@ export default function About() {
           <p className="mb-6 font-mono text-xs tracking-[0.4em] text-accent">
             02 // THE LORE — 物語
           </p>
-          <h2 className="font-display text-[7vw] font-bold leading-[1.1] md:text-[5vw] neon-outline-cyan">
+          <h2 className="font-display text-[7vw] font-bold leading-[1.1] md:text-[5vw] neon-outline-purple">
             I ENGINEER
             <br />
             DIGITAL <span className="text-accent">DOMAINS</span>.
