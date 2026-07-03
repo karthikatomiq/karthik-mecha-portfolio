@@ -272,6 +272,27 @@ section:hover .kanji-background {
   );
 }
 
+/* ---------- Custom cursor: Mecha targeting crosshair (outer radar) ---------- */
+/* Continuous spin lives on its own element with no other transform set by
+   JS, so it never fights the framer-motion transform tracking the mouse. */
+@keyframes reticle-radar-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.reticle-radar-spin {
+  animation: reticle-radar-spin 4s linear infinite;
+}
+.reticle-notch {
+  position: absolute;
+  width: 2px;
+  height: 6px;
+  background: #7209b7;
+}
+.reticle-notch-v {
+  width: 6px;
+  height: 2px;
+}
+
 /* ---------- Cursor gun: bullet tracer + impact splash ---------- */
 /* Spawned imperatively by CursorGun on each shot and removed when their
    WAAPI animations finish. Base opacity 0: only visible mid-animation. */

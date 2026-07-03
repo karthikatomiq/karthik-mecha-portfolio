@@ -38,6 +38,20 @@ const MAX_HITS = 6;
 const RESPAWN_MS = 2000;
 const SHARD_COLORS = ["#B6FF00", "#5ff2d6", "#ff3c8c", "#7cc7ff", "#ffffff"];
 
+/* Click-to-destroy: a second, independent destruction mechanic (separate
+   from the CursorGun shot system above) driven by a direct click on the
+   car — instant plasma-burst-and-warp-back-in, on its own dedicated child
+   element so its GSAP tweens never fight the shot system's WAAPI calls or
+   the scroll tween owning carRef.
+   Real pointer-events/onClick can't reach this layer: it sits at z-[-5]
+   (intentionally, so the car renders behind page content), and foreground
+   sections with default pointer-events:auto win the hit-test at that
+   screen position regardless of stacking order. So — same fix the shot
+   system above already uses — this is a window-level listener doing its
+   own coordinate hit-test against the car's rect. */
+const CLICK_RESPAWN_MS = 1500;
+const CLICK_AUDIO_VOLUME = 0.4;
+
 /* TODO: no explosion audio asset yet — drop a file at
    public/audio/explosion.mp3 and wire it here, e.g.:
    const a = new Audio("/audio/explosion.mp3"); a.volume = 0.6;
@@ -55,6 +69,77 @@ export default function ParallaxCar() {
   const aliveRef = useRef(true);
   const respawnTimer = useRef(0);
   const [hits, setHits] = useState(0);
+
+  /* Click-to-destroy */
+  const clickTargetRef = useRef<HTMLDivElement>(null);
+  const clickRespawnTimer = useRef(0);
+  const isDestroyedRef = useRef(false); // synchronous mirror for the listener below
+  const [, setIsDestroyed] = useState(false);
+
+  useEffect(() => {
+    const triggerDestroy = () => {
+      isDestroyedRef.current = true;
+      setIsDestroyed(true);
+
+      const blastAudio = new Audio("/sounds/blast.mp3");
+      const spawnAudio = new Audio("/sounds/spawn.mp3");
+      blastAudio.volume = CLICK_AUDIO_VOLUME;
+      spawnAudio.volume = CLICK_AUDIO_VOLUME;
+
+      blastAudio.play().catch(() => {});
+      gsap.to(clickTargetRef.current, {
+        scale: 1.5,
+        opacity: 0,
+        filter: "brightness(200%) hue-rotate(90deg)",
+        duration: 0.2,
+        ease: "power4.out",
+      });
+
+      clickRespawnTimer.current = window.setTimeout(() => {
+        spawnAudio.play().catch(() => {});
+        gsap.fromTo(
+          clickTargetRef.current,
+          { scale: 0, opacity: 0, filter: "brightness(100%)" },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: "back.out(1.7)",
+            onComplete: () => {
+              isDestroyedRef.current = false;
+              setIsDestroyed(false);
+            },
+          },
+        );
+      }, CLICK_RESPAWN_MS);
+    };
+
+    /* Coordinate hit-test against the car's own rect, mirroring the
+       kos:shot handler below — the only reliable way to detect a "click
+       on the car" given it renders behind foreground page content. */
+    const hitTest = (x: number, y: number) => {
+      if (isDestroyedRef.current || absorptionRef.current >= 0.999) return;
+      const img = imgRef.current;
+      if (!img) return;
+      const r = img.getBoundingClientRect();
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return;
+      triggerDestroy();
+    };
+
+    const onMouseDown = (e: globalThis.MouseEvent) => hitTest(e.clientX, e.clientY);
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (t) hitTest(t.clientX, t.clientY);
+    };
+
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    return () => {
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.clearTimeout(clickRespawnTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -312,24 +397,30 @@ export default function ParallaxCar() {
           {/* damage/explosion/respawn all animate this inner body, leaving
               the outer element to the GSAP scroll tween */}
           <div ref={bodyRef} className="relative">
-            {/* public/images/car.png is 800x654 */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {/* click-to-destroy target: purely a GSAP animation target
+                (see the coordinate hit-test above) — this layer stays
+                pointer-events-none like the rest of the fixed car layer,
+                since the real click never reaches it directly anyway. */}
+            <div ref={clickTargetRef} className="relative">
+              {/* public/images/car.png is 800x654 */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-              ref={imgRef}
-              src="/images/car.png"
-              alt=""
-              width={800}
-              height={654}
-              draggable={false}
-              className="h-auto w-full select-none"
-              style={{
-                /* progressive battle damage: duller, darker, bruised hue */
-                filter: `drop-shadow(0 0 26px rgba(60, 26, 71, 0.85)) saturate(${1 - hits * 0.1}) contrast(${1 + hits * 0.05}) brightness(${1 - hits * 0.06}) hue-rotate(-${hits * 4}deg)`,
-              }}
-            />
-            {/* neon tire flashes — % offsets track the rear wheels responsively */}
-            <span className="car-tire absolute bottom-[3%] left-[10%] aspect-square w-[7%]" />
-            <span className="car-tire absolute bottom-[3%] right-[10%] aspect-square w-[7%]" />
+                ref={imgRef}
+                src="/images/car.png"
+                alt=""
+                width={800}
+                height={654}
+                draggable={false}
+                className="h-auto w-full select-none"
+                style={{
+                  /* progressive battle damage: duller, darker, bruised hue */
+                  filter: `drop-shadow(0 0 26px rgba(60, 26, 71, 0.85)) saturate(${1 - hits * 0.1}) contrast(${1 + hits * 0.05}) brightness(${1 - hits * 0.06}) hue-rotate(-${hits * 4}deg)`,
+                }}
+              />
+              {/* neon tire flashes — % offsets track the rear wheels responsively */}
+              <span className="car-tire absolute bottom-[3%] left-[10%] aspect-square w-[7%]" />
+              <span className="car-tire absolute bottom-[3%] right-[10%] aspect-square w-[7%]" />
+            </div>
           </div>
         </div>
       </div>

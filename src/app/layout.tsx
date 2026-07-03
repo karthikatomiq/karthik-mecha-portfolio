@@ -4,6 +4,7 @@ import { Space_Grotesk, JetBrains_Mono, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import CursorGun from "@/components/CursorGun";
+import GlobalAudio from "@/components/GlobalAudio";
 import LoadingScreen from "@/components/LoadingScreen";
 import { siteConfig } from "@/data/config";
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LoadingScreen />
         <SmoothScroll>{children}</SmoothScroll>
         <CursorGun />
+        <GlobalAudio />
       </body>
     </html>
   );
